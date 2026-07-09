@@ -1,0 +1,130 @@
+{
+  "accounts": [
+    {
+      "id": "acc_1",
+      "name": "Kantong Nibras",
+      "type": "bank",
+      "balance": 1500000,
+      "color": "emerald",
+      "iconName": "Wallet"
+    },
+    {
+      "id": "acc_2",
+      "name": "Kantong Zenita",
+      "type": "bank",
+      "balance": 1500000,
+      "color": "pink",
+      "iconName": "Wallet"
+    },
+    {
+      "id": "acc_3",
+      "name": "SeaBank - Nabung Bersama",
+      "type": "savings",
+      "balance": 5000000,
+      "color": "orange",
+      "iconName": "Heart"
+    },
+    {
+      "id": "acc_4",
+      "name": "SeaBank - Belanja Bersama",
+      "type": "bank",
+      "balance": 2000000,
+      "color": "orange",
+      "iconName": "CreditCard"
+    }
+  ],
+  "transactions": [
+    {
+      "id": "tx_1",
+      "type": "income",
+      "amount": 4500000,
+      "accountId": "acc_1",
+      "category": "Gaji Bulanan",
+      "date": "2026-07-02",
+      "notes": "Gaji bulanan masuk ke Kantong Nibras",
+      "addedBy": "Nibras",
+      "createdAt": "2026-07-02T02:20:10.245Z"
+    },
+    {
+      "id": "tx_2",
+      "type": "income",
+      "amount": 4000000,
+      "accountId": "acc_2",
+      "category": "Gaji Bulanan",
+      "date": "2026-07-02",
+      "notes": "Gaji bulanan masuk ke Kantong Zenita",
+      "addedBy": "Zenita",
+      "createdAt": "2026-07-02T02:20:10.245Z"
+    },
+    {
+      "id": "tx_3",
+      "type": "expense",
+      "amount": 150000,
+      "accountId": "acc_4",
+      "category": "Makanan",
+      "date": "2026-07-02",
+      "notes": "Makan pecel lele romantis berdua Zenita",
+      "addedBy": "Nibras",
+      "createdAt": "2026-07-02T02:20:10.245Z"
+    },
+    {
+      "id": "tx_4",
+      "type": "transfer",
+      "amount": 500000,
+      "accountId": "acc_1",
+      "toAccountId": "acc_3",
+      "category": "Transfer",
+      "date": "2026-07-02",
+      "notes": "Nabung bareng bulanan ke SeaBank",
+      "addedBy": "Nibras",
+      "createdAt": "2026-07-02T02:20:10.245Z"
+    }
+  ],
+  "receipts": [
+    {
+      "id": "rc_1",
+      "imageUrl": "",
+      "merchantName": "Superindo Kemang",
+      "date": "2026-07-02",
+      "totalAmount": 145000,
+      "items": [
+        {
+          "name": "Ayam Potong 1kg",
+          "price": 42000,
+          "quantity": 1
+        },
+        {
+          "name": "Minyak Goreng 2L",
+          "price": 36000,
+          "quantity": 1
+        },
+        {
+          "name": "Indomie Goreng Pack",
+          "price": 15000,
+          "quantity": 1
+        },
+        {
+          "name": "Susu UHT 1L",
+          "price": 18000,
+          "quantity": 2
+        },
+        {
+          "name": "Bumbu Dapur Lengkap",
+          "price": 16000,
+          "quantity": 1
+        }
+      ],
+      "status": "saved",
+      "scannedAt": "2026-07-02T02:20:10.245Z",
+      "addedBy": "Nibras"
+    }
+  ],
+  "profile": {
+    "user1": "Nibras",
+    "user2": "Zenita",
+    "anniversaryDate": "2026-02-06",
+    "passcode": "1234",
+    "monthlyBudget": 3000000
+  },
+  "photos": []
+}

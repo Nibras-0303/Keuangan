@@ -1,0 +1,6 @@
+{
+  "name": "KitaPunya - Keuangan Bersama",
+  "description": "Aplikasi keuangan bersama pasangan yang dilengkapi fitur pelacakan rekening, pemasukan/pengeluaran, serta pemindaian foto nota otomatis menggunakan Gemini AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
