@@ -174,17 +174,30 @@ function readLocalFileDB(): DatabaseSchema {
     } else if (process.env.VERCEL) {
       // On Vercel, if the /tmp file does not exist yet, read the read-only file from process.cwd()
       const fallbackPath = path.join(process.cwd(), 'database.json');
+      let dataToUse = getInitialData();
       if (fs.existsSync(fallbackPath)) {
-        const content = fs.readFileSync(fallbackPath, 'utf-8');
-        const data = JSON.parse(content);
-        return {
-          accounts: data.accounts || [],
-          transactions: data.transactions || [],
-          receipts: data.receipts || [],
-          profile: data.profile || getInitialData().profile,
-          photos: data.photos || []
-        };
+        try {
+          const content = fs.readFileSync(fallbackPath, 'utf-8');
+          const parsed = JSON.parse(content);
+          dataToUse = {
+            accounts: parsed.accounts || [],
+            transactions: parsed.transactions || [],
+            receipts: parsed.receipts || [],
+            profile: parsed.profile || getInitialData().profile,
+            photos: parsed.photos || []
+          };
+        } catch (e) {
+          console.error('Error parsing fallback database.json, using seed', e);
+        }
       }
+      // Self-heal: Write it to /tmp so it exists for future read/write operations
+      try {
+        fs.writeFileSync(dbFilePath, JSON.stringify(dataToUse, null, 2), 'utf-8');
+        console.log('Successfully self-healed local database.json inside /tmp for Vercel.');
+      } catch (writeErr) {
+        console.error('Failed to self-heal/write to Vercel /tmp:', writeErr);
+      }
+      return dataToUse;
     }
   } catch (err) {
     console.error('Failed to read from local database.json:', err);
@@ -1312,8 +1325,10 @@ app.delete('/api/photos/:id', async (req, res) => {
 
 // Serve static assets and bundle SPA
 async function startServer() {
-  // Ensure seed is checked and run at startup
-  await checkAndSeedDatabase();
+  // Ensure seed is checked and run at startup in the background to not block webserver initialization
+  checkAndSeedDatabase()
+    .then(() => console.log('checkAndSeedDatabase check complete.'))
+    .catch(err => console.error('Error checking/seeding database in background:', err));
 
   if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
     const vite = await createViteServer({

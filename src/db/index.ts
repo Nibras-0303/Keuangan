@@ -37,6 +37,17 @@ export const createPool = () => {
     });
   }
 
+  if (!databaseUrl && !process.env.SQL_HOST) {
+    console.warn('WARNING: No DATABASE_URL or SQL_* environment variables found. PostgreSQL is disabled; falling back to local file database.');
+    return new Pool({
+      host: 'localhost',
+      user: 'placeholder',
+      password: 'placeholder',
+      database: 'placeholder',
+      connectionTimeoutMillis: 1000
+    });
+  }
+
   console.log('Connecting to PostgreSQL using SQL_* individual variables (Object Method)...');
   
   if (!process.env.SQL_HOST || !process.env.SQL_USER || !process.env.SQL_PASSWORD || !process.env.SQL_DB_NAME) {
