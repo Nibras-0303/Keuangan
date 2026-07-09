@@ -155,7 +155,9 @@ function getInitialData(): DatabaseSchema {
 }
 
 // Check if Database is empty on start, and seed initial data if needed
-const dbFilePath = path.join(process.cwd(), 'database.json');
+const dbFilePath = process.env.VERCEL 
+  ? path.join('/tmp', 'database.json') 
+  : path.join(process.cwd(), 'database.json');
 
 function readLocalFileDB(): DatabaseSchema {
   try {
@@ -169,6 +171,20 @@ function readLocalFileDB(): DatabaseSchema {
         profile: data.profile || getInitialData().profile,
         photos: data.photos || []
       };
+    } else if (process.env.VERCEL) {
+      // On Vercel, if the /tmp file does not exist yet, read the read-only file from process.cwd()
+      const fallbackPath = path.join(process.cwd(), 'database.json');
+      if (fs.existsSync(fallbackPath)) {
+        const content = fs.readFileSync(fallbackPath, 'utf-8');
+        const data = JSON.parse(content);
+        return {
+          accounts: data.accounts || [],
+          transactions: data.transactions || [],
+          receipts: data.receipts || [],
+          profile: data.profile || getInitialData().profile,
+          photos: data.photos || []
+        };
+      }
     }
   } catch (err) {
     console.error('Failed to read from local database.json:', err);
@@ -1299,7 +1315,7 @@ async function startServer() {
   // Ensure seed is checked and run at startup
   await checkAndSeedDatabase();
 
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
@@ -1313,10 +1329,15 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`KitaPunya server running online at http://0.0.0.0:${PORT}`);
-  });
+  // Only listen to port if not running in Vercel serverless environment
+  if (!process.env.VERCEL) {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`KitaPunya server running online at http://0.0.0.0:${PORT}`);
+    });
+  }
 }
 
 startServer();
+
+export default app;
 
