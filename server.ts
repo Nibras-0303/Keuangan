@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
-import { DatabaseSchema, Account, Transaction, Receipt, CoupleProfile } from './src/types.js';
+import { DatabaseSchema, Account, Transaction, Receipt, CoupleProfile } from './src/types.ts';
 import { db } from './src/db/index.ts';
 import { accounts, transactions, receipts, profile, photos } from './src/db/schema.ts';
 import { eq, and, desc } from 'drizzle-orm';
@@ -150,7 +150,7 @@ function getInitialData(): DatabaseSchema {
 }
 
 // Check if Database is empty and seed initial data if needed
-async function checkAndSeedDatabase() {
+async function checkAndSeedDatabase(): Promise<boolean> {
   try {
     console.log('Checking if PostgreSQL database is seeded...');
     const profiles = await db.select().from(profile).limit(1);
@@ -224,8 +224,10 @@ async function checkAndSeedDatabase() {
     } else {
       console.log('PostgreSQL database already has data. Skipping seed.');
     }
+    return true;
   } catch (err) {
     console.error('Error checking/seeding PostgreSQL:', err);
+    return false;
   }
 }
 
@@ -306,8 +308,10 @@ async function readPostgresDB(): Promise<DatabaseSchema> {
 let isSeeded = false;
 async function ensureDatabase() {
   if (!isSeeded) {
-    await checkAndSeedDatabase();
-    isSeeded = true;
+    const success = await checkAndSeedDatabase();
+    if (success) {
+      isSeeded = true;
+    }
   }
 }
 

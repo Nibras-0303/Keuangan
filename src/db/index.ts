@@ -11,56 +11,47 @@ const { Pool } = pkg;
 export const createPool = () => {
   const databaseUrl = process.env.DATABASE_URL;
 
-  if (databaseUrl) {
-    console.log('Connecting to PostgreSQL using DATABASE_URL...');
-    
-    // Self-healing check: If the password contains literal brackets like [Akusayangzenita],
-    // they can cause authentication failures and parsing issues. We automatically clean them.
-    let cleanedUrl = databaseUrl;
-    const matches = databaseUrl.match(/postgresql:\/\/([^:]+):([^@]+)@([^:/]+)/);
-    if (matches) {
-      const [, , rawPassword] = matches;
-      const decodedPassword = decodeURIComponent(rawPassword);
-      if (decodedPassword.startsWith('[') && decodedPassword.endsWith(']')) {
-        const cleanPassword = decodedPassword.slice(1, -1);
-        console.log('Self-healing: Removed outer brackets from database password.');
-        cleanedUrl = databaseUrl.replace(rawPassword, encodeURIComponent(cleanPassword));
-      }
-    }
-
+  if (!databaseUrl) {
+    console.error('CRITICAL ERROR: DATABASE_URL environment variable is missing!');
+    console.error('Please configure DATABASE_URL in your environment/Railway/Vercel settings.');
+    // Return a pool that will fail queries cleanly without crashing the Express startup process
     return new Pool({
-      connectionString: cleanedUrl,
-      connectionTimeoutMillis: 15000,
-      ssl: {
-        rejectUnauthorized: false,
-      }
+      connectionTimeoutMillis: 1000,
     });
   }
 
-  if (!databaseUrl && !process.env.SQL_HOST) {
-    console.warn('WARNING: No DATABASE_URL or SQL_* environment variables found. PostgreSQL is disabled; falling back to local file database.');
-    return new Pool({
-      host: 'localhost',
-      user: 'placeholder',
-      password: 'placeholder',
-      database: 'placeholder',
-      connectionTimeoutMillis: 1000
-    });
-  }
-
-  console.log('Connecting to PostgreSQL using SQL_* individual variables (Object Method)...');
+  console.log('Connecting to PostgreSQL using DATABASE_URL...');
   
-  if (!process.env.SQL_HOST || !process.env.SQL_USER || !process.env.SQL_PASSWORD || !process.env.SQL_DB_NAME) {
-    throw new Error('Missing DATABASE_URL or SQL_* configuration environment variables.');
+  // Self-healing check: If the password contains literal brackets like [Akusayangzenita],
+  // they can cause authentication failures and parsing issues. We automatically clean them.
+  let cleanedUrl = databaseUrl;
+  const matches = databaseUrl.match(/postgres(?:ql)?:\/\/([^:]+):([^@]+)@([^:/]+)/);
+  if (matches) {
+    const [, , rawPassword] = matches;
+    const decodedPassword = decodeURIComponent(rawPassword);
+    if (decodedPassword.startsWith('[') && decodedPassword.endsWith(']')) {
+      const cleanPassword = decodedPassword.slice(1, -1);
+      console.log('Self-healing: Removed outer brackets from database password.');
+      cleanedUrl = databaseUrl.replace(rawPassword, encodeURIComponent(cleanPassword));
+    }
+  }
+
+  // Safely clean any conflicting sslmode query parameters to ensure Pool's ssl object is respected
+  let finalUrl = cleanedUrl;
+  try {
+    const urlObj = new URL(cleanedUrl);
+    urlObj.searchParams.delete('sslmode');
+    finalUrl = urlObj.toString();
+  } catch (e) {
+    console.warn('Warning parsing database URL with URL helper:', e);
   }
 
   return new Pool({
-    host: process.env.SQL_HOST,
-    user: process.env.SQL_USER,
-    password: process.env.SQL_PASSWORD,
-    database: process.env.SQL_DB_NAME,
+    connectionString: finalUrl,
     connectionTimeoutMillis: 15000,
-    ssl: false, // Cloud SQL Auth Proxy doesn't require SSL locally
+    ssl: {
+      rejectUnauthorized: false,
+    }
   });
 };
 
