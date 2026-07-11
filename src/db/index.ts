@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pkg from 'pg';
-import * as schema from './schema.ts';
+import * as schema from './schema';
 import dns from 'node:dns';
 
 // Force DNS to prefer IPv4 first (fixes IPv6 connection failures in sandboxed containers)
