@@ -967,9 +967,41 @@ app.delete('/api/photos/:id', async (req, res) => {
   }
 });
 
-// Trigger database initialization check
+// Serve static assets and bundle SPA
+async function startServer() {
+  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+    try {
+      const { createServer: createViteServer } = await import('vite');
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: 'spa',
+      });
+      app.use(vite.middlewares);
+    } catch (e) {
+      console.error('Failed to initialize Vite development server:', e);
+    }
+  } else if (!process.env.VERCEL) {
+    const distPath = path.join(process.cwd(), 'dist');
+    app.use(express.static(distPath));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
+
+  // Only listen to port if not running in Vercel serverless environment
+  if (!process.env.VERCEL) {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`KitaPunya server running online at http://0.0.0.0:${PORT}`);
+    });
+  }
+}
+
+// Ensure database check is queued
 ensureDatabase()
-  .then(() => console.log('ensureDatabase initialization check complete.'))
+  .then(() => {
+    console.log('ensureDatabase initialization check complete.');
+    return startServer();
+  })
   .catch(err => console.error('Error during startup database initialization:', err));
 
 export default app;
